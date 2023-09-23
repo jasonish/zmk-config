@@ -5,8 +5,8 @@ all:
 	$(MAKE) right
 
 left right:
-	docker build --tag $(TAG) .
 	mkdir -p .app output
+	docker build --tag $(TAG) .
 	docker run --rm -it \
 		-v `readlink -f $$SSH_AUTH_SOCK`:/.ssh-agent -e SSH_AUTH_SOCK=/.ssh-agent \
 	        -v $(PWD)/.app:/app:z \

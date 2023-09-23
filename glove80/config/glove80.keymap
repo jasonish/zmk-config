@@ -15,24 +15,166 @@
 
 #define HYPER LC(LS(LG(LALT)))
 
-// layers
+// Layers
 #define DEFAULT 0
-#define LOWER 1
+#define OTHER 1
 #define MAGIC 2
 #define FACTORY_TEST 3
+
+// Glove80 key positions index for positional hold-tap
+// - https://discord.com/channels/877392805654306816/937645688244826154/1066713913351221248
+// - https://media.discordapp.net/attachments/937645688244826154/1066713913133121556/image.png
+//
+// Copied from: https://github.com/sunaku/glove80-keymaps
+#define LEFT_HAND_KEYS                          \
+  0  1  2  3  4                                 \
+  10 11 12 13 14 15                             \
+  22 23 24 25 26 27                             \
+  34 35 36 37 38 39                             \
+  46 47 48 49 50 51                             \
+  64 65 66 67 68
+#define RIGHT_HAND_KEYS                         \
+  5  6  7  8  9                                 \
+  16 17 18 19 20 21                             \
+  28 29 30 31 32 33                             \
+  40 41 42 43 44 45                             \
+  58 59 60 61 62 63                             \
+  75 76 77 78 79
+#define THUMB_KEYS                              \
+  69 52   57 74                                 \
+  70 53   56 73                                 \
+  71 54   55 72
 
 / {
 
   behaviors {
-    // For the "layer" key, it'd nice to be able to use it as either a shift or a toggle.
-    // Configure it as a tap dance, so the first tap (or hold) is a &mo and the second tap is a &to
-    layer_td: tap_dance_0 {
-      compatible = "zmk,behavior-tap-dance";
-      label = "LAYER_TAP_DANCE";
-      #binding-cells = <0>;
-      tapping-term-ms = <200>;
-      bindings = <&mo LOWER>, <&to LOWER>;
+    //
+    // Home row mod behaviours:
+    // - Copied from: Copied from: https://github.com/sunaku/glove80-keymaps
+    //
+
+    //////////////////////////////////////////////////////////////////
+    // Miryoku layers (thumb keys) and home row mods (non-thumb keys)
+    // - https://sunaku.github.io/home-row-mods.html
+    // - https://github.com/urob/zmk-config#timeless-homerow-mods
+    //////////////////////////////////////////////////////////////////
+    //
+    // TYPING_STREAK_TERM defines how long you need to wait (milliseconds)
+    // after typing before you can use home row mods again.  It prevents
+    // unintended activation of home row mods when you're actively typing.
+    //
+    #define TYPING_STREAK_TERM 160 // global-quick-tap-ms
+    //
+    // KEY_REPEATING_TERM defines how much time you have left (milliseconds)
+    // after tapping a key to hold it again in order to make it auto-repeat.
+    //
+    #define KEY_REPEATING_TERM 200 // "tap then hold" for key auto-repeat
+    //
+    // HOMEY_TAPPING_TERM defines how long you need to hold (milliseconds)
+    // home row mod keys in order to send their modifiers to the computer
+    // (i.e. "register" them) for mod-click mouse usage (e.g. Ctrl-Click).
+    //
+    #define HOMEY_TAPPING_TERM 260 // TAPPING_TERM + ALLOW_CROSSOVER_AFTER
+    //
+    // HOMEY_HOLDING_TYPE defines the flavor of ZMK hold-tap behavior to use
+    // for the pinky, ring, and middle fingers (which are assigned to Super,
+    // Alt, and Ctrl respectively in the Miryoku system) on home row keys.
+    //
+    #define HOMEY_HOLDING_TYPE "tap-preferred"
+    //
+    // INDEX_TAPPING_TERM defines how long you need to hold (milliseconds)
+    // index finger keys in order to send their modifiers to the computer
+    // (i.e. "register" them) for mod-click mouse usage (e.g. Shift-Click).
+    //
+    // CAUTION: You'll need to perform inward rolls from pinky->ring->middle
+    // fingers toward the index fingers when activating multiple modifiers
+    // because `hold-trigger-on-release` is disabled for the index fingers.
+    // Otherwise, you may be surprised that the index fingers' modifier is
+    // sent immediately without the rest of your multi-mod chord when you
+    // perform outward rolls from your index fingers toward your pinkies.
+    //
+    #define INDEX_TAPPING_TERM 180
+    //
+    // INDEX_HOLDING_TYPE defines the flavor of ZMK hold-tap behavior to use
+    // for index fingers (which Miryoku assigns to Shift) on home row keys.
+    //
+    // NOTE: The "tap-preferred" flavor of ZMK hold-tap for index finger keys
+    // allows faster activation of the Shift modifier (without having to wait
+    // for the modified key to be released as the "balanced" flavor requires).
+    // Typing streaks and the `hold-trigger-on-release` setting are disabled
+    // for the index fingers so as not to hinder their speed and dexterity.
+    //
+    #define INDEX_HOLDING_TYPE "tap-preferred"
+    //
+    // THUMB_TAPPING_TERM defines how long you need to hold (milliseconds)
+    // a thumb key to activate a layer.  Shorter holds are treated as taps.
+    //
+    #define THUMB_TAPPING_TERM 160
+    //
+    // THUMB_HOLDING_TYPE defines the flavor of ZMK hold-tap behavior to use
+    // for the thumbs (which are assigned to 6 layers in the Miryoku system).
+    //
+    // NOTE: The "balanced" flavor of ZMK hold-tap provides instant modifier
+    // activation for the symbol layer (if the tapped symbol key is released
+    // while the thumb layer key is still held down) for quicker programming.
+    //
+    #define THUMB_HOLDING_TYPE "balanced"
+
+    //
+    // Home row mod-tap keys for all except index fingers
+    //
+    homey_left: miryoku_home_row_mods_left_hand {
+      compatible = "zmk,behavior-hold-tap";
+      label = "HOME_ROW_MODS_LEFT_HAND";
+      flavor = HOMEY_HOLDING_TYPE;
+      hold-trigger-key-positions = <RIGHT_HAND_KEYS THUMB_KEYS>;
+      hold-trigger-on-release; // wait for other home row mods
+      tapping-term-ms = <HOMEY_TAPPING_TERM>;
+      quick-tap-ms = <TYPING_STREAK_TERM>;
+      global-quick-tap; // with typing streak
+      #binding-cells = <2>;
+      bindings = <&kp>, <&kp>;
     };
+    homey_right: miryoku_home_row_mods_right_hand {
+      compatible = "zmk,behavior-hold-tap";
+      label = "HOME_ROW_MODS_RIGHT_HAND";
+      flavor = HOMEY_HOLDING_TYPE;
+      hold-trigger-key-positions = <LEFT_HAND_KEYS THUMB_KEYS>;
+      hold-trigger-on-release; // wait for other home row mods
+      tapping-term-ms = <HOMEY_TAPPING_TERM>;
+      quick-tap-ms = <TYPING_STREAK_TERM>;
+      global-quick-tap; // with typing streak
+      #binding-cells = <2>;
+      bindings = <&kp>, <&kp>;
+    };
+    //
+    // Special home row mod-tap keys for the index fingers
+    //
+    index_left: miryoku_home_row_mods_left_index_shift {
+      compatible = "zmk,behavior-hold-tap";
+      label = "HOME_ROW_MODS_LEFT_INDEX_SHIFT";
+      flavor = INDEX_HOLDING_TYPE;
+      hold-trigger-key-positions = <RIGHT_HAND_KEYS THUMB_KEYS>;
+      //hold-trigger-on-release; // don't wait for other mods
+      tapping-term-ms = <INDEX_TAPPING_TERM>;
+      quick-tap-ms = <KEY_REPEATING_TERM>; // enable repeat
+      //global-quick-tap; // no typing streak
+      #binding-cells = <2>;
+      bindings = <&kp>, <&kp>;
+    };
+    index_right: miryoku_home_row_mods_right_index_shift {
+      compatible = "zmk,behavior-hold-tap";
+      label = "HOME_ROW_MODS_RIGHT_INDEX_SHIFT";
+      flavor = INDEX_HOLDING_TYPE;
+      hold-trigger-key-positions = <LEFT_HAND_KEYS THUMB_KEYS>;
+      //hold-trigger-on-release; // don't wait for other mods
+      tapping-term-ms = <INDEX_TAPPING_TERM>;
+      quick-tap-ms = <KEY_REPEATING_TERM>; // enable repeat
+      //global-quick-tap; // no typing streak
+      #binding-cells = <2>;
+      bindings = <&kp>, <&kp>;
+    };
+
   };
 
   macros {
@@ -84,47 +226,66 @@
   keymap {
     compatible = "zmk,keymap";
 
+// Home row mods - Left
+#define _A &homey_left LGUI A
+#define _S &homey_left LALT S
+#define _D &homey_left LCTL D
+#define _F &index_left LSFT F
+
+// Home row mods - Right
+#define _J    &index_right LSFT J
+#define _K    &homey_right LCTL K
+#define _L    &homey_right LALT L
+#define _SEMI &homey_right LGUI SEMI
+#define _QUOT &homey_right LGUI QUOT
+
+#define _MAGIC  &magic MAGIC 0
+#define _VOL_UP &kp C_VOL_UP
+#define _VOL_DN &kp C_VOL_DN
+#define _MUTE   &kp C_MUTE
+
+#define OTH_BSPC &lt OTHER BSPC
+
     default_layer {
-      // ---------------------------------------------------------------------------------------------------------------------------------
-      // |  F1   |  F2 |  F3 |  F4  |  F5  |                                                               |  F6   |  F7   |  F8  |   F9  |  F10 |
-      // |  =    |  1  |  2  |  3   |  4   |  5   |                                                 |  6   |   7   |   8   |  9   |   0   |   -  |
-      // |  TAB  |  Q  |  W  |  E   |  R   |  T   |                                                 |  Y   |   U   |   I   |  O   |   P   |   \  |
-      // |  ESC  |  A  |  S  |  D   |  F   |  G   |                                                 |  H   |   J   |   K   |  L   |   ;   |   '  |
-      // |   `   |  Z  |  X  |  C   |  V   |  B   | LSHFT | LCTRL | LOWER | | LGUI  | RCTRL | RSHFT |  N   |   M   |   ,   |  .   |   /   | PGUP |
-      // | MAGIC | HOME| END | LEFT | RIGHT|      | BSPC  | DEL   | LALT  | | RALT  | RET   | SPACE |      |  UP   | DOWN  |  [   |   ]   | PGDN |
-
       bindings = <
-        &kp F1         &kp F2   &kp F3      &kp F4      &kp F5                                                                                         &kp F6  &kp F7      &kp F8      &kp F9      &kp F10
-        &kp EQUAL      &kp N1   &kp N2      &kp N3      &kp N4      &kp N5                                                                     &kp N6  &kp N7  &kp N8      &kp N9      &kp N0      &kp MINUS
-        &kp TAB        &kp Q    &kp W       &kp E       &kp R       &kp T                                                                      &kp Y   &kp U   &kp I       &kp O       &kp P       &kp BSLH
-        &kp ESC        &kp A    &kp S       &kp D       &kp F       &kp G                                                                      &kp H   &kp J   &kp K       &kp L       &kp SEMI    &kp SQT
-        &kp GRAVE      &kp Z    &kp X       &kp C       &kp V       &kp B   &kp LSHFT   &kp LCTRL   &layer_td  &kp LGUI  &kp RCTRL &kp RSHFT   &kp N   &kp M   &kp COMMA   &kp DOT     &kp FSLH    &kp PG_UP
-        &magic MAGIC 0 &kp HOME &kp END     &kp LEFT    &kp RIGHT           &kp BSPC    &kp DEL     &kp LALT   &kp RALT  &kp RET   &kp SPACE           &kp UP  &kp DOWN    &kp LBKT    &kp RBKT    &kp PG_DN
-        >;
-    };
-    
-    lower_layer {
-      bindings = <
-        &kp C_BRI_DN      &kp C_BRI_UP        &kp C_PREV      &kp C_NEXT      &kp C_PP                                                                                                           &kp C_MUTE   &kp C_VOL_DN &kp C_VOL_UP  &none           &kp PAUSE_BREAK
-        &trans            &none               &none           &none           &none           &kp HOME                                                                              &kp LPAR     &kp KP_NUM   &kp KP_EQUAL &kp KP_DIVIDE &kp KP_MULTIPLY &kp PSCRN
-        &trans            &none               &none           &kp UP          &none           &kp END                                                                               &kp RPAR     &kp KP_N7    &kp KP_N8    &kp KP_N9     &kp KP_MINUS    &kp SLCK
-        &trans            &none               &kp LEFT        &kp DOWN        &kp RIGHT       &kp PG_UP                                                                             &kp PRCNT    &kp KP_N4    &kp KP_N5    &kp KP_N6     &kp KP_PLUS     &none
-        &trans            &kp K_CMENU         &none           &kp F11         &kp F12         &kp PG_DN       &trans      &trans      &to DEFAULT &trans      &trans      &trans    &kp COMMA    &kp KP_N1    &kp KP_N2    &kp KP_N3     &kp KP_ENTER    &trans
-        &trans            &kp CAPS            &kp INS         &kp F11         &kp F12                         &trans      &trans      &trans      &trans      &trans      &trans                 &kp KP_N0    &kp KP_N0    &kp KP_DOT    &kp KP_ENTER    &trans
+        &kp F1     &kp F2    &kp F3      &kp F4      &kp INS                                               /**/                                         &kp F11  &kp C_PP    _MUTE       _VOL_DN     _VOL_UP
+        &kp EQUAL  &kp N1    &kp N2      &kp N3      &kp N4      &kp N5                                    /**/                                 &kp N6  &kp N7   &kp N8      &kp N9      &kp N0      &kp MINUS
+        &kp TAB    &kp Q     &kp W       &kp E       &kp R       &kp T                                     /**/                                 &kp Y   &kp U    &kp I       &kp O       &kp P       &kp BSLH
+        &kp ESC    _A        _S          _D          _F          &kp G                                     /**/                                 &kp H   _J       _K          _L          _SEMI       &kp SQT
+        &none      &kp Z     &kp X       &kp C       &kp V       &kp B   &kp LSHFT   &kp LCTRL   &kp HOME  /**/  &kp PG_UP &kp RCTRL &kp RSHFT  &kp N   &kp M    &kp COMMA   &kp DOT     &kp FSLH    &none
+        _MAGIC     &kp GRAVE &none       &kp LEFT    &kp RIGHT           OTH_BSPC    &kp DEL     &kp END   /**/  &kp PG_DN &kp RET   &kp SPACE          &kp DOWN &kp UP      &kp LBKT    &kp RBKT    &none
         >;
     };
 
+    other_layer {
+      bindings = <
+        &trans    &trans      &trans   &trans   &trans                                                     /**/                                          &trans       &trans       &trans        &trans          &trans
+        &kp F1    &kp F2      &kp F3   &kp F4   &kp F5   &kp F6                                            /**/                                 &kp F7   &kp F8       &kp F9       &kp F10       &kp F11         &kp F12
+        &trans    &trans      &trans   &trans   &trans   &trans                                            /**/                                 &trans   &trans       &trans       &trans        &trans          &trans
+        &trans    &trans      &trans   &trans   &trans   &trans                                            /**/                                 &kp LEFT &kp DOWN     &kp UP       &kp RIGHT     &trans          &trans
+        &trans    &trans      &trans   &trans   &trans   &trans   &trans    &trans    &trans               /**/   &trans    &trans    &trans    &kp HOME &kp PG_DN    &kp PG_UP    &kp END       &trans          &trans
+        &trans    &trans      &trans   &trans   &trans            &trans    &trans    &trans               /**/   &trans    &trans    &trans             &trans       &trans       &trans        &trans          &trans
+        >;    };
+
+#define RGB(x) &rgb_ug RGB_ ## x
+#define BT(x) &bt BT_ ## x
+#define _OUT_USB &out OUT_USB
+#define RESET &sys_reset
+#define BOOT &bootloader
+
+    // Keep at layer 2.
     magic_layer {
       bindings = <
-        &bt BT_CLR        &none               &none           &none           &none                                                                                                           &none      &none      &none      &none      &bt BT_CLR_ALL
-        &none             &none               &none           &none           &none           &none                                                                                &none      &none      &none      &none      &none      &none
-        &none             &rgb_ug RGB_SPI     &rgb_ug RGB_SAI &rgb_ug RGB_HUI &rgb_ug RGB_BRI &rgb_ug RGB_TOG                                                                      &none      &none      &none      &none      &none      &none
-        &bootloader       &rgb_ug RGB_SPD     &rgb_ug RGB_SAD &rgb_ug RGB_HUD &rgb_ug RGB_BRD &rgb_ug RGB_EFF                                                                      &none      &none      &none      &none      &none      &bootloader
-        &reset            &none               &none           &none           &none           &none           &bt_2     &bt_3     &none            &none     &none     &none       &none      &none      &none      &none      &none      &reset
-        &none             &none               &none           &none           &none                           &bt_0     &bt_1     &out OUT_USB     &none     &none     &none                  &none      &none      &none      &none      &to FACTORY_TEST
+        BT(CLR) &none        &none    &none    &none                                           /**/                                               &none      &none      &none      &none      BT(CLR_ALL)
+        &none   &none        &none    &none    &none    &none                                  /**/                                    &none      &none      &none      &none      &none      &none
+        &none   RGB(SPI)     RGB(SAI) RGB(HUI) RGB(BRI) RGB(TOG)                               /**/                                    &none      &none      &none      &none      &none      &none
+        BOOT    RGB(SPD)     RGB(SAD) RGB(HUD) RGB(BRD) RGB(EFF)                               /**/                                    &none      &none      &none      &none      &none      BOOT
+        RESET   &none        &none    &none    &none    &none      &bt_2     &bt_3     &none   /**/    &none     &none     &none       &none      &none      &none      &none      &none      RESET
+        &none   &none        &none    &none    &none               &bt_0     &bt_1    _OUT_USB /**/    &none     &none     &none                  &none      &none      &none      &none      &to FACTORY_TEST
         >;
     };
 
+    // Keep at layer 3.
     factory_test_layer {
       bindings = <
         &kp N0   &kp N6   &kp N2   &kp N8   &kp N4                                                                              &kp N4   &kp N8   &kp N2   &kp N6   &kp N0
@@ -135,5 +296,16 @@
         &kp N5   &kp N1   &kp N7   &kp N3   &kp N9            &kp N7   &kp N8   &kp N9      &kp N9   &kp N8   &kp N7            &kp N9   &kp N3   &kp N7   &kp N1   &kp N5
         >;
     };
+
+    template_layer {
+      bindings = <
+        &trans    &trans      &trans   &trans   &trans                                            /**/                                                  &trans       &trans       &trans        &trans          &trans
+        &trans    &trans      &trans   &trans   &trans   &trans                                   /**/                                     &trans       &trans       &trans       &trans        &trans          &trans
+        &trans    &trans      &trans   &trans   &trans   &trans                                   /**/                                     &trans       &trans       &trans       &trans        &trans          &trans
+        &trans    &trans      &trans   &trans   &trans   &trans                                   /**/                                     &trans       &trans       &trans       &trans        &trans          &trans
+        &trans    &trans      &trans   &trans   &trans   &trans   &trans      &trans      &trans  /**/   &trans      &trans      &trans    &trans       &trans       &trans       &trans        &trans          &trans
+        &trans    &trans      &trans   &trans   &trans            &trans      &trans      &trans  /**/   &trans      &trans      &trans                 &trans       &trans       &trans        &trans          &trans
+        >;
+    };
   };
-  };
+};
